@@ -1,0 +1,25 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2> {{ category.name }} category: </h2>
+
+    <div class="container text-center" style="color:black;">
+        <div class="row">
+            {% for active in actives %}
+
+            <div class="col" style="color:black;">
+                <a href={% url 'active' active.id %}>
+                    <h4>{{ active.title }}</h4>
+                    <img style="max-width:100%;max-height: 200px;" src="{{ active.image }}" >
+                    <p>description :{{ active.description }}</p>
+                    <p>base price:{{ active.base_price }}$</p>
+                    <p>porpose price:{{ active.porpose_price}}$</p>
+                </a>
+            </div>
+
+                {% empty %}
+                <h3> no active </h3>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

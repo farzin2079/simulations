@@ -1,0 +1,54 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h1>{{ massage }}</h1>
+    <h2>add active</h2>
+
+
+    <form action="{% url 'add_active' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" value="{{ user.id }}" name="userid">
+        
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1">title</span>
+        <input type="text" class="form-control" placeholder="title" aria-label="active title" aria-describedby="basic-addon1" name="active_title">
+      </div>
+      
+      <div class="input-group mb-3">
+        <input name="base_price" type="number" class="form-control" placeholder="first price" aria-label="Recipient's username" aria-describedby="basic-addon2">
+        <span class="input-group-text" id="basic-addon2">$usd</span>
+      </div>
+      
+      <label for="basic-url" class="form-label">image URL</label>
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon3">https://example.com/users/</span>
+        <input name="image" type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+      </div>
+      
+      <div class="input-group">
+        <span class="input-group-text">description</span>
+        <textarea class="form-control" aria-label="description" name="description"></textarea>
+      </div>
+<br>
+      <lable for="category">
+      <select name="category" id="category">
+        {% for category in categorys%}
+
+            <option value="{{category.id}}">{{ category }}</option>
+            {% empty %}
+            <option value="no_category">no category</option>
+        {% endfor %}
+      </select>
+      <br>
+      <br>
+      <input type="submit" value="public" class="btn btn-outline-primary">
+    </form>
+<br><br>
+    <form action="{% url 'add_category' %}" method="post">
+        {% csrf_token %}
+        <input type="text" placeholder="add a category" name="new_category">
+        <input type="submit" value="add category" class="btn btn-outline-primary">
+    </form>
+    <br>
+      
+{% endblock %}

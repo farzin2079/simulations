@@ -1,0 +1,41 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+        <table class="table table-bordered border-primary " style="margin-left:25%;width:700px;text-align:center;"> 
+            <thead>
+                <tr>
+                    <td colspan="2"><h2>{{active.title}}</h2></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="3"><img style="max-width:300px;max-height: 200px;" src="{{active.image}}"></td>
+                    <td> base price:{{active.base_price}} $ usd</td>
+                </tr>
+
+                <tr>
+                    <td> category: {{active.category}}</td>
+                </tr>
+                
+                <tr>
+                    <td rowspan="2"> {{active.description}} </td>
+                </tr>
+
+                <tr>
+                    <td>porpose price:{{active.porpose_price}}$ usd</td>
+                </tr>
+
+                <tr>
+                    <td colspan="2">
+                        porpose new price:<form action="{% url 'porpose' active.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="number" min="{{ active.base_price }}" name="porpose">
+                            <input type="submit" value="porpose" class="btn btn-outline-primary">
+                        </form> 
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+{% endblock %}
