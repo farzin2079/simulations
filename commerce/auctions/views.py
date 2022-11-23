@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from .models import User, Active_list, Categorys
+from .models import User, Active_list, Categorys, Watchlist
 
 def massage(massage):
     return HttpResponse(f"<h1>{massage}</h1>")
@@ -37,7 +37,7 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
-
+@login_required
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
@@ -101,12 +101,18 @@ def active(request, active_id):
     categorys = Categorys.objects.all()
     # take slelected active
     active = Active_list.objects.get(id = active_id)
+        # check watchlist
+    if request.user.is_authenticated:
+        user = User.objects.get( username = request.user)
+        check = check_watchlist(active, user)
+        
     return render(request, "auctions/active.html",{
         "active":active,
-        "categorys": categorys
+        "categorys": categorys,
+        "check": check
     })
 
-
+@login_required
 def add_category(request):
     new = request.POST["new_category"]
     add = Categorys(name=new)
@@ -129,14 +135,55 @@ def category(request, category_id):
     
     
 # take porpose and update price
+@login_required
 def porpose(request, active_id):
     if (request.method == 'POST'):
         porpose = request.POST["porpose"]
-        mod = Active_list.objects.get(id = active_id)
-        if mod.porpose_price < int(porpose):
-            mod.porpose_price = porpose
-            mod.save()  
+        exporpose = Active_list.objects.get(id = active_id)
+        if exporpose.porpose_price < int(porpose):
+            exporpose.porpose_price = porpose
+            exporpose.save()  
         else: 
             return massage("invalid porpose")
         
-    return HttpResponseRedirect(reverse(index))
+    return HttpResponseRedirect(reverse("active", args=(active_id)))
+
+@login_required
+def watchlist(request, user_id):
+    #take categorys name for dropdown
+    categorys = Categorys.objects.all()
+    
+    watchlist = Watchlist.objects.filter(user = user_id)
+
+    return render(request, "auctions/watchlist.html", {
+        "actives" : watchlist ,
+        "categorys": categorys
+    })
+    
+@login_required
+def add_watchlist(request):
+    #take categorys name for dropdown
+    categorys = Categorys.objects.all()
+    
+    active_id = id = request.POST["active_id"]
+    active = Active_list.objects.get(id = active_id)
+    user_id = request.user
+    # remove or add watchlist
+    check = check_watchlist(active , user_id)
+    watchlist = Watchlist(actives=active, user=user_id)
+    if  not check :
+        watchlist.save()
+    else:
+        watchlist = Watchlist.objects.get(actives=active, user=user_id)
+        watchlist.delete()
+        
+    return HttpResponseRedirect(reverse("active", args=(active_id)))
+    
+
+def check_watchlist(active , user):
+    is_it = False
+    if Watchlist.objects.filter(user=user, actives=active):
+        is_it = True
+    
+    return is_it
+    

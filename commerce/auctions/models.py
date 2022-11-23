@@ -21,9 +21,13 @@ class Active_list(models.Model):
     add_user = models.ForeignKey(User, related_name="add_user", on_delete=models.CASCADE)
     
     def __str__(self):
-        return f"title:{self.title}, base price: {self.base_price}"
+        return f"{self.id}=title:{self.title}, base price: {self.base_price}"
     
 class Watchlist(models.Model):
-    actives = models.ForeignKey(Active_list, on_delete=models.CASCADE, blank=True)
+    actives = models.ForeignKey(Active_list, on_delete=models.CASCADE, blank=True, related_name="actives")
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True)
+    
+    def __str__(self):
+        return f"{self.actives}"
+    
     

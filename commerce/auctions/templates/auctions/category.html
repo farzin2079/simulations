@@ -7,7 +7,7 @@
         <div class="row">
             {% for active in actives %}
 
-            <div class="col" style="color:black;">
+            <div class="col border border-primary" style="color:black;">
                 <a href={% url 'active' active.id %}>
                     <h4>{{ active.title }}</h4>
                     <img style="max-width:100%;max-height: 200px;" src="{{ active.image }}" >

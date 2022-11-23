@@ -1,10 +1,22 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-        <table class="table table-bordered border-primary " style="margin-left:25%;width:700px;text-align:center;"> 
+{{ check }}
+        <table class="table border border-primary " style="margin-left:25%;width:700px;text-align:center;"> 
             <thead>
                 <tr>
-                    <td colspan="2"><h2>{{active.title}}</h2></td>
+                    <td colspan="2"><h2>{{active.title}}</h2> 
+                    {% if user.is_authenticated %}
+                        <form action="{% url 'add_watchlist' %}" method="post">
+                            {% csrf_token %}
+                            {% if check %}
+                                <button type="submit" class="btn btn-outline-primary" name="active_id" value="{{ active.id }}">remove from watchlist</button>       
+                            {% else %}
+                                <button type="submit" class="btn btn-outline-primary" name="active_id" value="{{ active.id }}">add to watchlist</button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                    </td>
                 </tr>
             </thead>
             <tbody>

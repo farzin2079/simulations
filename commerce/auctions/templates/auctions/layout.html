@@ -47,7 +47,7 @@
                     <a class="nav-link" href="{% url 'add_active' %}">add active</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'watchlist' %}">watchlist</a>
+                    <a class="nav-link" href="{% url 'watchlist' user.id%}" name="user_id" value="{{ user.id }}">watchlist</a>
                 </li>
             {% else %}
                 <li class="nav-item">
