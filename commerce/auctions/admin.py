@@ -1,7 +1,9 @@
 from django.contrib import admin
-from .models import User, Active_list, Categorys, Watchlist
+from .models import User, Listing, Categorys, Watchlist, Comment,Bids
 
 # Register your models here.
-admin.site.register(Active_list)
+admin.site.register(Listing)
 admin.site.register(Categorys)
 admin.site.register(Watchlist)
+admin.site.register(Comment)
+admin.site.register(Bids)

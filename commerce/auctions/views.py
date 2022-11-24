@@ -4,13 +4,14 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from .models import User, Active_list, Categorys, Watchlist
+from .models import User, Listing, Categorys, Watchlist, Comment, Bids
+
 
 def massage(massage):
-    return HttpResponse(f"<h1>{massage}</h1>")
+    return HttpResponse(f'<h1>{massage}</h1><a href="/">home</a>')
     
 def index(request):
-    actives_list = Active_list.objects.all()
+    actives_list = Listing.objects.all()
     categorys = Categorys.objects.all()
     return render(request, "auctions/index.html",{
         "categorys": categorys,
@@ -74,7 +75,7 @@ def add_active(request):
     categorys = Categorys.objects.all()
     if request.method == "POST":
         title = request.POST["active_title"]
-        price = request.POST["base_price"]
+        price = int(request.POST["base_price"])
         image = request.POST["image"]
         description = request.POST["description"]
         
@@ -86,8 +87,10 @@ def add_active(request):
         user = User.objects.get(id = userid)
         
         
-        add = Active_list(title=title, base_price=int(price), image=image, description=description, add_user=user, porpose_price=int(price), category=category)
+        add = Listing(title=title, base_price=price, image=image, description=description, add_user=user, category=category)
         add.save()
+        bid = Bids(user=user,price=price,active=add)
+        bid.save()
 
         return HttpResponseRedirect(reverse(index))
     else:
@@ -100,16 +103,22 @@ def active(request, active_id):
     #take categorys name for dropdown
     categorys = Categorys.objects.all()
     # take slelected active
-    active = Active_list.objects.get(id = active_id)
+    active = Listing.objects.get(id = active_id)
         # check watchlist
+    check = False
     if request.user.is_authenticated:
         user = User.objects.get( username = request.user)
         check = check_watchlist(active, user)
         
+    comments = comment(active_id)
+    bids = Bids.objects.get( active=active)
+        
     return render(request, "auctions/active.html",{
         "active":active,
         "categorys": categorys,
-        "check": check
+        "check": check,
+        "comments" :comments,
+        "bids":bids
     })
 
 @login_required
@@ -136,13 +145,16 @@ def category(request, category_id):
     
 # take porpose and update price
 @login_required
-def porpose(request, active_id):
+def bids(request, active_id):
     if (request.method == 'POST'):
         porpose = request.POST["porpose"]
-        exporpose = Active_list.objects.get(id = active_id)
-        if exporpose.porpose_price < int(porpose):
-            exporpose.porpose_price = porpose
-            exporpose.save()  
+        user = request.user
+        active = Listing.objects.get(id = active_id)
+        exbid = Bids.objects.get( active=active)
+        if (exbid.price )<= int(porpose):
+            newbid = Bids(user=user, price=porpose,active=active)
+            exbid.delete()
+            newbid.save()  
         else: 
             return massage("invalid porpose")
         
@@ -165,8 +177,8 @@ def add_watchlist(request):
     #take categorys name for dropdown
     categorys = Categorys.objects.all()
     
-    active_id = id = request.POST["active_id"]
-    active = Active_list.objects.get(id = active_id)
+    active_id = request.POST["active_id"]
+    active = Listing.objects.get(id = active_id)
     user_id = request.user
     # remove or add watchlist
     check = check_watchlist(active , user_id)
@@ -180,6 +192,34 @@ def add_watchlist(request):
     return HttpResponseRedirect(reverse("active", args=(active_id)))
     
 
+def add_comment(request, active_id):
+    comment = request.POST["comment"]
+    user = request.user
+    
+    active = Listing.objects.get( pk= active_id)
+    add_comment = Comment(user=user, comment=comment, active=active)
+    add_comment.save()
+    
+    return HttpResponseRedirect(reverse("active", args=(active_id)))
+
+def cancel(request):
+    cancel = request.POST['cancel']
+    
+    active = Listing.objects.get( id = cancel)
+    active.delete()
+    
+    return HttpResponseRedirect(reverse(index))
+
+def close(request):
+    close = request.POST['close']
+    
+    active = Listing.objects.get(id = close)
+    winner = Bids.objects.get(active = active)
+    active.delete()
+    
+    return massage(f"{winner.user} is winner with {winner.price} porpose")
+    
+
 def check_watchlist(active , user):
     is_it = False
     if Watchlist.objects.filter(user=user, actives=active):
@@ -187,3 +227,7 @@ def check_watchlist(active , user):
     
     return is_it
     
+def comment(active_id):
+    comment = Comment.objects.filter( active = active_id)
+    
+    return comment
