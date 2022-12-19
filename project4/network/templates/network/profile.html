@@ -1,0 +1,91 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <table class="table center border">
+        <thead>
+            <tr>
+                <th class="larger">{{ profile.username }}</th>
+            </tr>
+        </thead>
+        <tbody>
+          {% if user.is_authenticated %}{% if user != profile %}
+            <tr>
+                <td><button id="follow" data-user="{{profile.id}}">follow</button></td>
+            </tr>
+            {% endif %}
+            {% endif %}
+            <tr>
+                <td>following</td>
+                <td>follower</td>
+            </tr>
+
+            <tr>
+                <td>{{following_count}}</td>
+                <td id="count">{{follower_count}}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% for post in posts %}
+    <div>
+        <a class="link-dark" href="{% url 'profile' post.posted_by.id %}">
+            <h2>{{post.posted_by}}</h2>
+        </a>
+            <h3> {{post.title}}</h3>
+            <p>{{post.body}}</p>
+            <h6>{{post.likes}}</h6>
+
+            {% if user.is_authenticated %}
+
+            {% if not request.user in post.like.all %}
+                <button class="btn btn-outline-danger" id="like" data-id="{{post.id}}">like</button>
+              {% else %}
+                <button class="btn btn-outline-danger active" id="like" data-id="{{post.id}}">unlike</button>
+              {% endif %}
+            {% endif %}
+            
+        </div>
+    {% endfor %}
+    
+
+
+    <nav aria-label="...">
+        <ul class="pagination">
+            {% if posts.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1 ">first</a>
+              </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{posts.previous_page_number}} ">Previous</a>
+            </li>
+              {% endif %}
+
+          <li class="page-item active" aria-current="page">
+            <a class="page-link">{{posts.number}}</a>
+          </li>
+
+          {% if posts.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ posts.next_page_number }}">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ posts.paginator.num_pages }}">last</a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    <script>
+      const id = document.querySelector('#follow').dataset.user
+      fetch(`/follow/${id}`)
+      .then(response => response.json())
+      .then(data =>{
+          const followed = data.followed
+          if (followed == 'true') {
+              document.querySelector('#follow').className = 'btn btn-outline-dark active'
+          }
+          else{
+            document.querySelector('#follow').className = 'btn btn-outline-dark'
+          }
+        })
+
+    </script>
+{% endblock %}

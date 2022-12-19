@@ -1,0 +1,38 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    {% for page_obj in page_objs %}
+        <div>
+            <h2>{{page_obj.posted_by}}
+            <h3> {{page_obj.title}}</h3>
+            <p>{{page_obj.body}}</p>
+            <h6>{{page_obj.likes}}</h6>
+        </div>
+    {% endfor %}
+
+    <nav aria-label="...">
+        <ul class="pagination">
+            {% if page_objs.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1 ">first</a>
+              </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{page_objs.previous_page_number}} ">Previous</a>
+            </li>
+              {% endif %}
+
+          <li class="page-item active" aria-current="page">
+            <a class="page-link">{{page_objs.number}}</a>
+          </li>
+
+          {% if page_objs.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_objs.next_page_number }}">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_objs.paginator.num_pages }}">last</a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+{% endblock %}

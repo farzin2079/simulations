@@ -1,0 +1,11 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+   {% for following in followings%}
+        <a class="link-dark" href="{% url 'profile' following.following.id%}">
+            {{following.following.username}}
+        </a>
+        {% empty %}
+            no one followed
+        {% endfor %}
+{% endblock %}
