@@ -1,10 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from .models import User, Listing, Categorys, Watchlist, Comment, Bids
+from .models import User, Listing, Categorys, Comment, Bids
+from .forms import ListingForms
 
 
 def massage(massage):
@@ -72,31 +73,25 @@ def register(request):
 
 @login_required
 def add_active(request):
-    categorys = Categorys.objects.all()
     if request.method == "POST":
-        title = request.POST["active_title"]
-        price = int(request.POST["base_price"])
-        image = request.POST["image"]
-        description = request.POST["description"]
+        title = request.POST['title']
+        image = request.POST['image']
+        category = request.POST['category']
+        description = request.POST['description']
+        base_price = request.POST['base_price']
+        add_user = request.user
         
-        categoryid = request.POST["category"]
-        category = Categorys.objects.get(id = categoryid)
-         
-
-        userid = request.POST["userid"]
-        user = User.objects.get(id = userid)
-        
-        
-        add = Listing(title=title, base_price=price, image=image, description=description, add_user=user, category=category)
-        add.save()
-        bid = Bids(user=user,price=price,active=add)
+        active  = Listing(title=title , image=image, category=Categorys.objects.get(pk=category), description=description, base_price=base_price, add_user=add_user)
+        active.save()
+        # add bids
+        bid = Bids(user=add_user, price=base_price, active=active)
         bid.save()
-
-        return HttpResponseRedirect(reverse(index))
+        
+        return redirect('index')
     else:
         return render(request, "auctions/add_active.html",{
             "categorys": Categorys.objects.all(),
-            "categorys": categorys
+            "forms": ListingForms
         })
     
 def active(request, active_id):
@@ -104,14 +99,14 @@ def active(request, active_id):
     categorys = Categorys.objects.all()
     # take slelected active
     active = Listing.objects.get(id = active_id)
-        # check watchlist
+    # check watchlist
     check = False
     if request.user.is_authenticated:
         user = User.objects.get( username = request.user)
-        check = check_watchlist(active, user)
+        # check = check_watchlist(active, user)
         
     comments = comment(active_id)
-    bids = Bids.objects.get( active=active)
+    bids = Bids.objects.get(active=active)
         
     return render(request, "auctions/active.html",{
         "active":active,
@@ -154,7 +149,9 @@ def bids(request, active_id):
         if (exbid.price )<= int(porpose):
             newbid = Bids(user=user, price=porpose,active=active)
             exbid.delete()
-            newbid.save()  
+            newbid.save() 
+            active.bids = newbid
+            active.save()
         else: 
             return massage("invalid porpose")
         
@@ -165,7 +162,7 @@ def watchlist(request, user_id):
     #take categorys name for dropdown
     categorys = Categorys.objects.all()
     
-    watchlist = Watchlist.objects.filter(user = user_id)
+    watchlist = User.objects.get(id = user_id)
 
     return render(request, "auctions/watchlist.html", {
         "actives" : watchlist ,
@@ -179,15 +176,12 @@ def add_watchlist(request):
     
     active_id = request.POST["active_id"]
     active = Listing.objects.get(id = active_id)
-    user_id = request.user
     # remove or add watchlist
-    check = check_watchlist(active , user_id)
-    watchlist = Watchlist(actives=active, user=user_id)
+    check = check_watchlist(active , request.user)
     if  not check :
-        watchlist.save()
+        User.watchlist.add(active)
     else:
-        watchlist = Watchlist.objects.get(actives=active, user=user_id)
-        watchlist.delete()
+        User.watchlist.delete(active)
         
     return HttpResponseRedirect(reverse("active", args=(active_id)))
     
@@ -222,9 +216,9 @@ def close(request):
 
 def check_watchlist(active , user):
     is_it = False
-    if Watchlist.objects.filter(user=user, actives=active):
+    if active in User.objects.get(id=user.id).watchlist :
         is_it = True
-    
+        
     return is_it
     
 def comment(active_id):

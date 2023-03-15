@@ -2,10 +2,58 @@
 
 {% block body %}
    {% for following in followings%}
-        <a class="link-dark" href="{% url 'profile' following.following.id%}">
-            {{following.following.username}}
-        </a>
-        {% empty %}
-            no one followed
+
+        {% for post in posts %}
+                {% if following.following == post.posted_by%}
+                    <div class="border post" id="div-{{post.id}}">
+                        {% if user.is_authenticated %}{% if user == post.posted_by %} 
+                        <button id="edit" class="btn btn-primary" data-id='{{post.id}}'>edit</button>
+                        <button id="delete" class="btn btn-primary" data-id='{{post.id}}'>delete</button>
+                        {% endif %}
+                        {% endif %}
+                        <a class="link-dark" href="{% url 'profile' post.posted_by.id %}">
+                            <h2>{{post.posted_by}}</h2>
+                        </a>
+                            <h3> {{post.title}}</h3>
+                            <p>{{post.body}}</p>
+                            <h6 id="like-{{post.id}}">{{post.like.count}}</h6>
+                
+                            {% if user.is_authenticated %}
+                            {% if post.like == user %}
+                                <button class="btn btn-outline-danger active" id="like" data-id="{{post.id}}">unlike</button>
+                                {% else %}
+                                <button class="btn btn-outline-danger" id="like" data-id="{{post.id}}">like</button>
+                                {% endif %}
+                                {% endif %}
+                            
+                        </div>
+                {% endif %}   
         {% endfor %}
+    {% endfor %}
+
+              <nav aria-label="...">
+                <ul class="pagination">
+                    {% if posts.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1 ">first</a>
+                      </li>
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{posts.previous_page_number}} ">Previous</a>
+                    </li>
+                      {% endif %}
+        
+                  <li class="page-item active" aria-current="page">
+                    <a class="page-link">{{posts.number}}</a>
+                  </li>
+        
+                  {% if posts.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ posts.next_page_number }}">Next</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ posts.paginator.num_pages }}">last</a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </nav>
 {% endblock %}

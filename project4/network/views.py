@@ -7,7 +7,8 @@ from django.urls import reverse
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import User, Post, Follow
+from .forms import CustomUserForm
+from .models import User, Post, Follow, Profile
 
 
 def index(request):
@@ -52,11 +53,12 @@ def register(request):
         email = request.POST["email"]
 
         # Ensure password matches confirmation
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
+        password = request.POST["password1"]
+        confirmation = request.POST["password2"]
         if password != confirmation:
             return render(request, "network/register.html", {
-                "message": "Passwords must match."
+                "message": "Passwords must match.",
+                'forms': CustomUserForm
             })
 
         # Attempt to create new user
@@ -65,12 +67,15 @@ def register(request):
             user.save()
         except IntegrityError:
             return render(request, "network/register.html", {
-                "message": "Username already taken."
+                "message": "Username already taken.",
+                'forms': CustomUserForm
             })
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
     else:
-        return render(request, "network/register.html")
+        return render(request, "network/register.html", {
+            'forms': CustomUserForm
+        })
     
 @csrf_exempt
 def follow(request, id):
@@ -101,13 +106,22 @@ def follow(request, id):
 def following(request):
     follower = request.user
     followings = Follow.objects.filter(follower=follower)
+    posts = Post.objects.all()
+    
+    paginator = Paginator(posts , 10)
+    page_num = request.GET.get('page')
+    page_objs = paginator.get_page(page_num)
+    
     return render(request, 'network/following.html',{
-        'followings':followings
+        'followings':followings,
+        'posts':page_objs
         })
         
         
 def profile(request, user_id):
-    profile = User.objects.get(pk=int(user_id))
+    user = User.objects.get(pk=int(user_id))
+    profile = Profile.objects.get( user = user)
+    
     posts = Post.objects.filter(posted_by = user_id)
     posts = posts.order_by("-timestamp").all()
     paginator = Paginator(posts , 10)

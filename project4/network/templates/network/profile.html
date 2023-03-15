@@ -25,6 +25,7 @@
             </tr>
         </tbody>
     </table>
+    <p>{{ profile.about }}</p>
     {% for post in posts %}
     <div>
         <a class="link-dark" href="{% url 'profile' post.posted_by.id %}">

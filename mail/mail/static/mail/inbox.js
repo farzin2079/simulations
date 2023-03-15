@@ -143,7 +143,7 @@ function sendmail() {
         }
         else
         {
-          alert('somtingrong try again')
+          alert('somting wrong try again')
           return compose_email();
         }
       });

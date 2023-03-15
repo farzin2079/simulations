@@ -68,7 +68,7 @@
                     <td rowspan="2"> 
                         <form action="{% url 'add_comment' active.id%}" method="post">
                                 {% csrf_token %}
-                                <input type="text" name="comment" placeholder="write a comment">
+                                <input type="text" name="comment" placeholder="write a comment" autocomplete="off">
                                 <input type="submit" value="comment">
                             </form>  
                         </td>
