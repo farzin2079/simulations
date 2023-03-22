@@ -1,5 +1,6 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from .serializers import ListingSerialazer
 from auctions.models import Listing
@@ -26,4 +27,17 @@ def getListings(request):
 def getListing(request, id):
     listing = Listing.objects.get(pk=id)
     serializer = ListingSerialazer(listing, many=False)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+def addcomment(request, pk):
+    active = Listing.objects.get(id=pk)
+    user = request.user
+    data = request.data 
+    
+    print('DATA:', data)
+    
+    serializer = ListingSerialazer(active)
     return Response(serializer.data)
